@@ -1,5 +1,13 @@
 package cdac.in.dac;
 
+/*
+ * @author Chandra Shekhar
+ * @date  2018/04/04  
+ * @about This program evalute the MCQ with given Key and Responses This
+ *        also generate the key analysis and difficulty level of the keys
+ *
+ */
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
