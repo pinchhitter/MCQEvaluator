@@ -26,7 +26,7 @@ class Answer{
 		this.answers = new ArrayList<String>();
 		answer = answer.trim();
 		for(String ans: answer.split("OR") ){
-			this.answers.add( ans );	
+			this.answers.add( ans.trim() );	
 		}
 	}	
 }
@@ -82,7 +82,6 @@ class MultipalChoice extends Question{
 
 
 	public MultipalChoice(Answer answer, Double marks, Double negative){
-
 		this.answer = answer;
 		this.marks = marks;
 		this.negative = negative;
@@ -92,6 +91,13 @@ class MultipalChoice extends Question{
 		this.wrong = 0;
 		this.unattempted = 0;
 		this.attempt = 0;
+
+		for( String an: answer.answers ){
+			if( an.equals("MTN") || an.equals("mtn") )
+				isMTN = true;
+			else if( an.equals("MTA") || an.equals("mta") )
+				isMTA = true;
+		}
 	}
 	
 	public Double eval(Response response){
@@ -99,12 +105,15 @@ class MultipalChoice extends Question{
 		if( this.isMTA ){
 			return this.marks;
 		}
-		if( this.isMTN ){
+		else if( this.isMTN ){
 			return new Double(0.0);
 		}
 		if( isValid( response ) ){
+
 			this.attempt++;
+
 			for(String ans: this.answer.answers ){
+
 				if( response.responses.get(0).equalsIgnoreCase( ans ) ){
 					this.correct++;
 					return this.marks;

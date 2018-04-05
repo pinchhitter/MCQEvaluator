@@ -53,7 +53,10 @@ class Paper{
 				candidate.totalMarks += marks;
 				candidate.marks.put( quid, marks );
 			}
-			candidate.scaleMarks = new Double(  new DecimalFormat("#0.0#").format( ( candidate.totalMarks / questions.keySet().size() ) * scale) );
+			if( scale != null )
+				candidate.scaleMarks = new Double(  new DecimalFormat("#0.0#").format( ( candidate.totalMarks / questions.keySet().size() ) * scale) );
+			else
+				candidate.scaleMarks = candidate.totalMarks;
 		}
 	}
 
@@ -65,20 +68,25 @@ class Paper{
 		return false;
 	}
 
-	void keyAnalysis(){
+	void keyAnalysis(int topAnalysis ){
 
-		int top30 = Math.max( 30, ( candidates.size() * 30 )/ 100 );
+		int top = Math.max( topAnalysis, ( candidates.size() * topAnalysis )/ 100 );
 
 		for( Candidate candidate: candidates ){
 
 			for(Integer quid: questions.keySet() ){
+
+				if( questions.get( quid ).isMTA || questions.get( quid ).isMTN ){
+					continue;
+				}
+
 				KeyAnalysis ka = keyAnalysis.get( quid );
 
 				if( ka == null ){
 					ka = new KeyAnalysis( quid, questions.get( quid ).answer );
 				}
 				
-				if( top30 > ( ka.correct + ka.wrong ) ) {	
+				if( top > ( ka.correct + ka.wrong ) ) {	
 
 					boolean isAttempt = false;
 
@@ -119,9 +127,11 @@ class Paper{
 		}
 	}
 
-	void printKeyAnalysis( ){
-		int top30 = Math.max( 30, ( candidates.size() * 30 )/ 100 );
-		System.out.println("30% candidates of total are: "+top30);
+	void printKeyAnalysis(int topAnalysis ){
+
+		int top = Math.max( topAnalysis, ( candidates.size() * topAnalysis )/ 100 );
+
+		System.out.println(topAnalysis+"% candidates of total are: "+top);
 
 		for(Integer quid : keyAnalysis.keySet() ){
 
@@ -234,12 +244,13 @@ class Process{
 		System.err.println("Total "+count+" Candidate Read");
 	}
 
-	void processing(Double scale){
+	void processing(Double scale, int topAnalysis){
+
 		paper.process( scale );
 		paper.ranking();
 
-		paper.keyAnalysis();
-		paper.printKeyAnalysis();
+		paper.keyAnalysis( topAnalysis );
+		paper.printKeyAnalysis( topAnalysis );
 		paper.printQuestions();
 		paper.print();
 	}
@@ -249,6 +260,7 @@ class Process{
 		String responseFile = null;
 		String paper = null;
 		Double scale = null;
+		int topAnalysis = 10;
 
 		int i = 0;
 		while( i < args.length ){
@@ -264,17 +276,20 @@ class Process{
 			}else if ( args[i].equals("-s")){
 				scale = new Double( args[i+1].trim() );
 				i++;
+			}else if ( args[i].equals("-t")){
+				topAnalysis = Integer.parseInt( args[i+1].trim() );
+				i++;
 			}
 			i++;
 		}
 		if( keyFile == null || responseFile == null ){
-			System.err.println("java Process -k <keyfile> -r <resposneFile> -p <paper>");
+			System.err.println("java Process -k <keyfile> -r <resposneFile> -p <paper> -s <to-scale> -t <topAnalysis>");
 			return;
 		}
 		Process p = new Process(paper);
 		p.readAnswerkey( keyFile, true);
 		p.readResponses( responseFile, true);
-		p.processing( scale );
+		p.processing( scale, topAnalysis );
 
 	}
 }
